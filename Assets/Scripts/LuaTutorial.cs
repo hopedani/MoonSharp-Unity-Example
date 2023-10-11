@@ -134,6 +134,12 @@ public class LuaTutorial : MonoBehaviour
         return res.Number;
     }
 
+    GameObject Instantiate(string prefabName)
+    {
+        GameObject obj = (GameObject)Resources.Load("Prefabs/" + prefabName);
+        return GameObject.Instantiate(obj);
+    }
+
     IEnumerable<int> GetNumbers()
     {
         for(int i = 0; i <= 10; i++)

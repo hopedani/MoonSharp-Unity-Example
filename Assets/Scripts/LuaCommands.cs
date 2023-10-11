@@ -8,13 +8,9 @@ public class LuaCommands : MonoBehaviour
     public static LuaCommands Instance { get { return _instance; } }
 
     [SerializeField]
-    private TMPro.TextMeshProUGUI textBox = new TMPro.TextMeshProUGUI();
+    private TMPro.TextMeshProUGUI textBox;
 
-    [SerializeField]
-    private TMPro.TextMeshProUGUI textBtn1 = new TMPro.TextMeshProUGUI();
-
-    [SerializeField]
-    private TMPro.TextMeshProUGUI textBtn2 = new TMPro.TextMeshProUGUI();
+    private ButtonHandler buttons;
 
     private void Awake()
     {
@@ -28,6 +24,11 @@ public class LuaCommands : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+       buttons = FindObjectOfType<ButtonHandler>();
+    }
+
     public static void SetText(string txt)
     {
         _instance.textBox.text = txt;
@@ -35,7 +36,8 @@ public class LuaCommands : MonoBehaviour
 
     public static void ShowButtons(string txtBtn1, string txtBtn2)
     {
-        _instance.textBtn1.text = txtBtn1;
-        _instance.textBtn2.text = txtBtn2;
+        _instance.buttons.ShowButtons(txtBtn1, txtBtn2);
     }
+
+
 }

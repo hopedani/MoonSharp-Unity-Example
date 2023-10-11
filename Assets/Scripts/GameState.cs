@@ -11,6 +11,15 @@ public class GameState
 {
     private string playerName;
     private int buttonSelected;
+    private HashSet<string> flags;
+   
+
+    [MoonSharpHidden]
+    public GameState()
+    {
+        flags = new HashSet<string>();
+    }
+   
     public string PlayerName
     {
         get
@@ -29,5 +38,22 @@ public class GameState
         get { return buttonSelected; }
         [MoonSharpHidden]
         set { buttonSelected = value; }
+    }
+
+    public bool GetFlag(string flag)
+    {
+        return flags.Contains(flag);
+    }
+
+    public void SetFlag(string flag, bool set)
+    {
+        if (set)
+        {
+            flags.Add(flag);
+        }
+        else
+        {
+            flags.Remove(flag);
+        }
     }
 }

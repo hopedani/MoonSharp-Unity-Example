@@ -13,7 +13,8 @@ public class LuaEnvironment : MonoBehaviour
     private string loadFile;
 
     Script enviro;
-    private MoonSharp.Interpreter.Coroutine activeCoroutine;
+    private Stack<MoonSharp.Interpreter.Coroutine> coroutineStack;
+    
     private GameState luaGameState;
 
     public GameState LuaGameState
@@ -35,12 +36,14 @@ public class LuaEnvironment : MonoBehaviour
     private IEnumerator Initailize()
     {
         Script.DefaultOptions.DebugPrint = (s) => Debug.Log(s);
-       
+        coroutineStack = new Stack<MoonSharp.Interpreter.Coroutine>();
 
-        enviro = new Script();
+        //**!!! IMPORTANT! - the param given to the "Script" constructor will prevent the script from being able to exit the program and read files from disk!!!
+        enviro = new Script(CoreModules.Preset_SoftSandbox);  
  
         UserData.RegisterType<GameState>(); //this was suppose to be "UserData.RegisterAssembly()" but that throws an error
         enviro.Globals["SetText"] = (Action<string>)LuaCommands.SetText;  //defines a type of function (one without a return type)
+        enviro.Globals["ShowButtons"] = (Action<string,string>)LuaCommands.ShowButtons;
         enviro.Globals["State"] = UserData.Create(luaGameState);
 
         yield return 1;
@@ -74,30 +77,35 @@ public class LuaEnvironment : MonoBehaviour
 
         if (ret.Type == DataType.Function)
         {
-            activeCoroutine = enviro.CreateCoroutine(ret).Coroutine;
+            coroutineStack.Push(enviro.CreateCoroutine(ret).Coroutine);
         }
-        else
-        {
-            activeCoroutine = null;
-        }
+    
     }
 
     public void AdvanceScript()
     {
-        if (activeCoroutine != null)
+        if (coroutineStack.Count > 0)
         {
             try
             {
-                activeCoroutine.Resume();
-                if (activeCoroutine.State == CoroutineState.Dead)
+                MoonSharp.Interpreter.Coroutine active = coroutineStack.Peek();
+                DynValue ret = active.Resume();
+                
+                if (active.State == CoroutineState.Dead)
                 {
-                    activeCoroutine = null;
-                    Debug.Log("Dialogue Complete!");
+                    coroutineStack.Pop();
+                    Debug.Log("Coroutine Dead!");
+                }
+
+                if (ret.Type == DataType.Function)
+                {
+                    coroutineStack.Push(enviro.CreateCoroutine(ret).Coroutine);
                 }
             }
             catch(ScriptRuntimeException ex)
             {
                 Debug.LogError("AdvanceScript Issue - " + ex.DecoratedMessage);
+                coroutineStack.Clear();
             }
             
         }
